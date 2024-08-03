@@ -23,15 +23,11 @@ def chatbot():
     user_name = data['name']
     user_message = data['message']
 
-    completion = openai.Completion.create(
-        model="model-identifier",
-        prompt=f"{user_name}: {user_message}\nAI:",
-        temperature=0.7,
-        max_tokens=50  # Adjust this value to control the length of the response
-    )
+    # Initialize conversation between two bots
+    bot1_message = initiate_chat(user_name, user_message)
+    bot2_message = chat_between_bots(bot1_message)
 
-    response_message = completion.choices[0].text.strip().split('\n')[0]  # Get the first line of the response
-    return jsonify({"message": response_message})
+    return jsonify({"message": bot2_message})
 
 @socketio.on('connect')
 def handle_connect():
@@ -52,19 +48,39 @@ def handle_message(msg):
     user_response = {'name': name, 'message': message}
     emit('message', user_response, broadcast=True)
 
-    # Call the chatbot API
-    completion = openai.Completion.create(
-        model="model-identifier",
-        prompt=f"{name}: {message}\nAI:",
-        temperature=0.7,
-        max_tokens=50  # Adjust this value to control the length of the response
-    )
-
-    response_message = completion.choices[0].text.strip().split('\n')[0]  # Get the first line of the response
+    # Initialize conversation between two bots
+    bot1_message = initiate_chat(name, message)
+    bot2_message = chat_between_bots(bot1_message)
 
     # Broadcast the AI's response
-    ai_response = {'name': 'AI', 'message': response_message}
+    ai_response = {'name': 'AI Bot 2', 'message': bot2_message}
     emit('message', ai_response, broadcast=True)
+
+def initiate_chat(name, message):
+    # Call the chatbot API for the first bot
+    completion = openai.Completion.create(
+        model="model-identifier",
+        prompt=f"{name}: {message}\nAI Bot 1:",
+        temperature=0.7,
+        max_tokens=50
+    )
+
+    # Get the response from the first bot
+    bot1_response = completion.choices[0].text.strip().split('\n')[0]
+    return bot1_response
+
+def chat_between_bots(bot1_message):
+    # Call the chatbot API for the second bot
+    completion = openai.Completion.create(
+        model="model-identifier",
+        prompt=f"AI Bot 1: {bot1_message}\nAI Bot 2:",
+        temperature=0.7,
+        max_tokens=50
+    )
+
+    # Get the response from the second bot
+    bot2_response = completion.choices[0].text.strip().split('\n')[0]
+    return bot2_response
 
 # Start the server
 if __name__ == '__main__':

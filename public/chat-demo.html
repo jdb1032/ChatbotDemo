@@ -1,23 +1,31 @@
-<!--
-Jan-Daryl Bantug
--->
+<!-- Jan-Daryl Bantug -->
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Chat room</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #chatContainer { margin-bottom: 10px; }
+        #chatArea { width: 100%; height: 300px; border: 1px solid #ccc; padding: 5px; font-family: monospace; resize: none; }
+        #myForm { margin-top: 10px; }
+        label { margin-right: 10px; }
+        input[type="text"] { width: calc(100% - 12px); margin-bottom: 10px; }
+        input[type="submit"] { width: 100%; }
+    </style>
 </head>
 <body>
     <div id="chatContainer">
-        <textarea id="chatArea" rows="10" cols="50" readonly></textarea>
+        <textarea id="chatArea" readonly></textarea>
     </div>
 
     <form id="myForm">
         <label for="name">Your Name:</label>
-        <input type="text" name="name" value="" id="name" required><br>
+        <input type="text" name="name" id="name" required><br>
         <label for="message">Your Message:</label>
-        <input type="text" name="message" value="" id="message" required><br>
+        <input type="text" name="message" id="message" required><br>
         <input type="submit" value="Send">
     </form>
 
@@ -26,7 +34,6 @@ Jan-Daryl Bantug
         // Connect to the Socket.IO server
         const socket = io();
 
-        // React to server-side response
         // Append data to chat area
         socket.on('message', function(data) {
             const chatArea = document.getElementById('chatArea');
@@ -34,15 +41,14 @@ Jan-Daryl Bantug
             chatArea.scrollTop = chatArea.scrollHeight; // Scroll to the bottom
         });
 
-        const myForm = document.forms["myForm"];
+        const myForm = document.getElementById("myForm");
 
         // Send name and message to WebSocket connection
         // and clear message input when done
         myForm.onsubmit = (e) => {
             e.preventDefault();
-            const formData = new FormData(myForm);
-            const name = formData.get('name');
-            const message = formData.get('message');
+            const name = document.getElementById('name').value;
+            const message = document.getElementById('message').value;
             socket.send(JSON.stringify({ name, message }));
             document.getElementById('message').value = '';
         };
